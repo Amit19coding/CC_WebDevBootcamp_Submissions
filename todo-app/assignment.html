@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>To-Do App</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    margin: 0;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Container */
+.container {
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    border-radius: 20px;
+    width: 350px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* Header */
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 3px solid white;
+}
+
+.bio {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+/* Input */
+.input-section {
+    display: flex;
+    gap: 10px;
+}
+
+input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 10px;
+    background: #ff7eb3;
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #ff4f91;
+}
+
+/* Task list */
+ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+li {
+    background: rgba(255,255,255,0.2);
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Completed task */
+.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+/* Delete button */
+.delete-btn {
+    background: #ff4d4d;
+    padding: 5px 10px;
+    border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <img src="https://cdn-icons-png.flaticon.com/512/3135/3135715.png" 		class="avatar">
+        <h2>Am It</h2>
+        <p class="bio">Student | Developer | Building cool apps 🚀</p>
+    </header>
+
+    <section class="input-section">
+        <input type="text" id="taskInput" placeholder="Enter a task...">
+        <button onclick="addTask()">Add</button>
+    </section>
+
+    <section>
+        <ul id="taskList"></ul>
+    </section>
+
+</div>
+
+<script>
+const API = 'http://localhost:3000/tasks';
+
+async function loadTasks() {
+    const res = await fetch(API);
+    const data = await res.json();
+    const list = document.getElementById('taskList');
+    list.innerHTML = '';
+
+    data.forEach(task => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+            <span 
+                class="${task.completed ? 'completed' : ''}" 
+                onclick="toggleTask(${task.id})"
+            >
+                ${task.text}
+            </span>
+            <button class="delete-btn" onclick="deleteTask(${task.id})">X</button>
+        `;
+        list.appendChild(li);
+    });
+}
+
+async function addTask() {
+    const input = document.getElementById('taskInput');
+    if (!input.value) return;
+
+    await fetch(API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: input.value })
+    });
+
+    input.value = '';
+    loadTasks();
+}
+
+async function deleteTask(id) {
+    await fetch(`${API}/${id}`, { method: 'DELETE' });
+    loadTasks();
+}
+
+async function toggleTask(id) {
+    await fetch(`${API}/${id}`, { method: 'PUT' });
+    loadTasks();
+}
+
+loadTasks();
+</script>
+
+</body>
+</html>
